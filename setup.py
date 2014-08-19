@@ -14,7 +14,7 @@ setup(
     description='From the same root',
     long_description=long_description,
     packages=['phenomena',],
-    install_requires=[],
+    install_requires=['gevent==1.0.1','pyzmq==14.3.1', 'cognate'],
     include_package_data = True,
 )
 
