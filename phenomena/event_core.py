@@ -3,7 +3,8 @@ import signal
 
 from cognate.component_core import ComponentCore
 
-from gevent import joinall, sleep, spawn
+from gevent import sleep, spawn
+from gevent.lock import RLock
 import zmq.green as zmq
 
 class EventCore(ComponentCore):
@@ -19,6 +20,9 @@ class EventCore(ComponentCore):
 
         # zmq poller used to retrieve messages
         self._poller = None
+
+        # semaphore for controlling configuration
+        self._config_lock = RLock()
 
 
     def cognate_options(self, arg_parser):
@@ -39,25 +43,30 @@ class EventCore(ComponentCore):
         self._poller = zmq.Poller()
         poller_loop_spawn = spawn(self._poll_loop_executable)
 
-        # initialize the control layer
+        with self._config_lock:
+            # initialize the control layer
 
-        # initialize the output sockets
+            # initialize the output sockets
 
-        # initialize the input sockets
+            # initialize the input sockets
+            pass
 
         # execute a run loop if one has been assigned
+        # else wait for the poll loop to exit
 
         # set the stop state
         self._stopped = True
 
-        # shutdown input sockets
+        with self._config_lock:
+            # shutdown input sockets
 
-        # shutdown output sockets
+            # shutdown output sockets
 
-        # shutdown command layer
+            # shutdown command layer
+            pass
 
         # ensure shutdown of poller loop
-        joinall([poller_loop_spawn])
+        poller_loop_spawn.join(timeout=self.heartbeat)
         self._poller = None
 
         self.log.info('Execution terminated.')
