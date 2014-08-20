@@ -7,10 +7,14 @@ from gevent import sleep, spawn
 from gevent.lock import RLock
 import zmq.green as zmq
 
+from controller import Controller
+
+
 class EventCore(ComponentCore):
-    def __init__(self, heartbeat=3, **kwargs):
+    def __init__(self, command_port=60053, heartbeat=3, **kwargs):
 
         self.heartbeat = heartbeat
+        self.command_port = command_port
 
         # configure the interrupt handlers and shutdown
         self._stopped = True
@@ -18,11 +22,17 @@ class EventCore(ComponentCore):
 
         ComponentCore.__init__(self, **kwargs)
 
+        # zmq context used to create sockets
+        self._zmq_ctx = None
+
         # zmq poller used to retrieve messages
         self._poller = None
 
         # semaphore for controlling configuration
         self._config_lock = RLock()
+
+        # the service controller
+        self._controller = None
 
 
     def cognate_options(self, arg_parser):
@@ -30,6 +40,7 @@ class EventCore(ComponentCore):
                                 type=int,
                                 default=self.heartbeat,
                                 help='Set the heartbeat rate in seconds.')
+
     @property
     def is_stopped(self):
         return self._stopped
@@ -39,17 +50,24 @@ class EventCore(ComponentCore):
 
         self.log.info('Execution started with configuration : %s', self)
 
+        # create the zmq context
+        self._zmq_ctx = zmq.Context()
+
         # create poller loop
         self._poller = zmq.Poller()
-        poller_loop_spawn = spawn(self._poll_loop_executable)
 
         with self._config_lock:
             # initialize the control layer
+            self._controller = Controller(event_core=self,
+                                          log=self.log,
+                                          port=self.command_port)
+            self._poller.register(self._controller.listener, zmq.POLLIN)
 
             # initialize the output sockets
 
             # initialize the input sockets
-            pass
+
+        poller_loop_spawn = spawn(self._poll_loop_executable)
 
         # execute a run loop if one has been assigned
         # else wait for the poll loop to exit
@@ -63,21 +81,29 @@ class EventCore(ComponentCore):
             # shutdown output sockets
 
             # shutdown command layer
-            pass
+            self._controller.kill()
+            self._controller = None
 
         # ensure shutdown of poller loop
         poller_loop_spawn.join(timeout=self.heartbeat)
         self._poller = None
 
+        # destroy zmq context
+        self._zmq_ctx = None
+
         self.log.info('Execution terminated.')
 
 
     def kill(self):
-        self._stopped = True
+        self._controller.signal_message('__kill__')
+        #self._stopped = True
 
     def _poll_loop_executable(self):
         while True:
-            self._poller.poll(timeout=self.heartbeat * 1000)
+            socks = dict(self._poller.poll(timeout=self.heartbeat * 1000))
+
+            if socks.get(self._controller.listener) == zmq.POLLIN:
+                msg = self._controller.handle_msg()
 
             if self._stopped:
                 self.log.info('Stop flag triggered ... shutting down.')

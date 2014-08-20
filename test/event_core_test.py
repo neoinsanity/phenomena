@@ -1,6 +1,8 @@
 
 import unittest
 
+from gevent import spawn
+
 from phenomena.event_core import EventCore
 
 class EventCoreTest(unittest.TestCase):
@@ -16,6 +18,7 @@ class EventCoreTest(unittest.TestCase):
 
         self.assertIsNotNone(core)
 
-        core.run()
+        the_spawn = spawn(core.run)
+        print the_spawn._exception
 
         core.kill()
