@@ -68,12 +68,12 @@ class EventCore(ComponentCore):
             # initialize the input sockets
 
         poller_loop_spawn = spawn(self._poll_loop_executable)
+        sleep(0.1)
 
         # execute a run loop if one has been assigned
         # else wait for the poll loop to exit
-
-        # set the stop state
-        self._stopped = True
+        # ensure shutdown of poller loop
+        poller_loop_spawn.join()
 
         with self._config_lock:
             # shutdown input sockets
@@ -84,8 +84,7 @@ class EventCore(ComponentCore):
             self._controller.kill()
             self._controller = None
 
-        # ensure shutdown of poller loop
-        poller_loop_spawn.join(timeout=self.heartbeat)
+        # destroy poller
         self._poller = None
 
         # destroy zmq context
@@ -93,23 +92,22 @@ class EventCore(ComponentCore):
 
         self.log.info('Execution terminated.')
 
-
     def kill(self):
+        self.log.info('kill invoked.')
         self._controller.signal_message('__kill__')
         #self._stopped = True
 
     def _poll_loop_executable(self):
-        while True:
+        self.log.info('Starting run loop.')
+        self._stopped = False
+        while not self._stopped:
             socks = dict(self._poller.poll(timeout=self.heartbeat * 1000))
 
             if socks.get(self._controller.listener) == zmq.POLLIN:
-                msg = self._controller.handle_msg()
+                self._controller.handle_msg()
 
-            if self._stopped:
-                self.log.info('Stop flag triggered ... shutting down.')
-                break;
-
-            sleep(0)  # yield to give other spawns a chance to terminate
+        self.log.info('Run loop shutdown.')
+        sleep(0)  # yield to give other spawns a chance to terminate
 
     def _signal_interrupt_handler(self):
         self.kill()

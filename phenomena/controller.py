@@ -50,6 +50,7 @@ class Controller():
         :type msg: basestring
         :return:
         """
+        self._sender.send(msg)
 
     def kill(self):
         self._sender.close()

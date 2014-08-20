@@ -1,7 +1,7 @@
-
+import logging
 import unittest
 
-from gevent import spawn
+from gevent import sleep, spawn
 
 from phenomena.event_core import EventCore
 
@@ -14,11 +14,14 @@ class EventCoreTest(unittest.TestCase):
         pass
 
     def test_simple_event_core(self):
-        core = EventCore()
+
+        logging.error('Starting event core test.')
+        core = EventCore(log_level='info')
 
         self.assertIsNotNone(core)
 
         the_spawn = spawn(core.run)
-        print the_spawn._exception
+        sleep(0.1)  # yield to allow the core to configure itself
 
         core.kill()
+        the_spawn.join()
