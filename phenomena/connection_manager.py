@@ -31,5 +31,11 @@ class ConnectionManager(object):
 
             #todo: raul - add code to determine dynamic addition of socket
 
-            self._input_socket_configs[self._input_index] = input_socket_config
+            # register the input config
+            id = self._input_index
+            input_socket_config.id = id
+            self._input_socket_configs[id] = input_socket_config
             self._input_index += 1
+
+            return id
+
