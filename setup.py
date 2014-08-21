@@ -4,6 +4,12 @@ from setuptools import setup
 with open('README.txt') as file:
     long_description = file.read()
 
+requires = [
+    'ontic==0.0.2',
+    'gevent==1.0.1',
+    'pyzmq==14.3.1',
+    'cognate']
+
 setup(
     name='phenomena',
     version='0.0.0',
@@ -14,7 +20,7 @@ setup(
     description='From the same root',
     long_description=long_description,
     packages=['phenomena',],
-    install_requires=['gevent==1.0.1','pyzmq==14.3.1', 'cognate'],
+    install_requires=requires,
     include_package_data = True,
 )
 

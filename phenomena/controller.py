@@ -1,7 +1,8 @@
+from gevent import sleep
 import zmq.green as zmq
 
-class Controller():
 
+class Controller():
     def __init__(self, event_core, log, port):
         """
 
