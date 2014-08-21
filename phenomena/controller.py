@@ -2,8 +2,8 @@ from gevent import sleep
 import zmq.green as zmq
 
 
-class Controller():
-    def __init__(self, event_core, log, port):
+class Controller(object):
+    def __init__(self, event_core, port):
         """
 
         :param event_core:
@@ -16,7 +16,7 @@ class Controller():
         :rtype: Controller
         """
         self.event_core = event_core
-        self.log = log
+        self.log = event_core.log
         self.port = port
 
         # configure sockets

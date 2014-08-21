@@ -2,25 +2,27 @@
 import signal
 
 from cognate.component_core import ComponentCore
-
 from gevent import sleep, spawn
 from gevent.lock import RLock
 import zmq.green as zmq
 
 from controller import Controller
+from connection_manager import ConnectionManager
 
 
 class EventCore(ComponentCore):
     def __init__(self, command_port=60053, heartbeat=3, **kwargs):
 
+        # initialize configurable attributes
         self.heartbeat = heartbeat
         self.command_port = command_port
 
-        # configure the interrupt handlers and shutdown
-        self._stopped = True
-        signal.signal(signal.SIGILL, self._signal_interrupt_handler)
-
+        # execute the event core configuration
         ComponentCore.__init__(self, **kwargs)
+
+        # configure the interrupt handlers and run state
+        signal.signal(signal.SIGILL, self._signal_interrupt_handler)
+        self._stopped = True
 
         # zmq context used to create sockets
         self._zmq_ctx = None
@@ -35,7 +37,7 @@ class EventCore(ComponentCore):
         self._controller = None
 
         # input configs are of type input_socket_config.InputSocketConfig
-        self._input_socket_configs = []
+        self._connection_manager = ConnectionManager(self)
         self._input_sockets = None
 
     def cognate_options(self, arg_parser):
@@ -62,7 +64,6 @@ class EventCore(ComponentCore):
         with self._config_lock:
             # initialize the control layer
             self._controller = Controller(event_core=self,
-                                          log=self.log,
                                           port=self.command_port)
             self._poller.register(self._controller.listener, zmq.POLLIN)
 
@@ -70,6 +71,9 @@ class EventCore(ComponentCore):
 
             # initialize the input sockets
             self._input_sockets = []
+            for sock_config in self._connection_manager.input_socket_configs:
+                self.log.info('Configuring socket: %s', sock_config)
+                #todo: raul - add actual socket creation logic
 
             # spawn the poller loop
             poller_loop_spawn = spawn(self._poll_loop_executable)
@@ -110,9 +114,6 @@ class EventCore(ComponentCore):
     def _clear_poller(self):
         self.log.info('Clearing poller.')
 
-        # remove the command, as no more commands are excepted.
-        self._poller.unregister(self._controller.listener)
-
         count = 3
         while count > 0:
             count -= 1
@@ -122,6 +123,8 @@ class EventCore(ComponentCore):
             for sock in self._input_sockets:
                 if socks.get(sock) == zmq.POLLIN:
                     msg_found = True
+                    #todo: raul - add processing of message
+                    spawn(sock.recv_handler, sock)
 
             if msg_found:
                 count = 3
@@ -134,6 +137,11 @@ class EventCore(ComponentCore):
 
             if socks.get(self._controller.listener) == zmq.POLLIN:
                 self._controller.handle_msg()
+
+            for sock in self._input_sockets:
+                if socks.get(sock) == zmq.POLLIN:
+                    #todo: raul - add processing of msg
+                    spawn(sock.recv_handler, sock)
 
             self.log.debug('Thump!, Thump!')
 
