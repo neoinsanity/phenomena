@@ -15,7 +15,7 @@ class EventCoreTest(unittest.TestCase):
     def test_simple_event_core(self):
 
         # test subject
-        core = EventCore(log_level='info', verbose=True)
+        core = EventCore()
         #core = EventCore()
         self.assertIsNotNone(core)
 
@@ -24,7 +24,7 @@ class EventCoreTest(unittest.TestCase):
 
         # text run state
         the_spawn = spawn(core.run)
-        sleep(0) # give the spawn a change to initialize
+        sleep(0.005) # give the spawn a change to initialize
         self.assertFalse(core._stopped)
 
         # test shutdown state
