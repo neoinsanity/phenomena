@@ -47,6 +47,10 @@ class EventCore(ComponentCore):
                                 help='Set the heartbeat rate in seconds.')
 
     @property
+    def controller(self):
+        return self._controller
+
+    @property
     def is_stopped(self):
         return self._stopped
 
@@ -95,7 +99,7 @@ class EventCore(ComponentCore):
             # shutdown output sockets
 
             # shutdown command layer
-            self._controller.kill()
+            self._controller.close_connections()
             self._controller = None
 
         # destroy poller

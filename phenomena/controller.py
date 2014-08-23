@@ -35,8 +35,8 @@ class Controller(object):
         """
         msg = self._listener.recv()
 
-        if msg is None:
-            self.log.error('None message delivered.')
+        if not msg:
+            self.log.error('Empty message delivered: %s', msg)
             return
 
         if msg == '__kill__':
@@ -53,6 +53,6 @@ class Controller(object):
         """
         self._sender.send(msg)
 
-    def kill(self):
+    def close_connections(self):
         self._sender.close()
         self._listener.close()

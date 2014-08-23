@@ -25,7 +25,7 @@ class ConnectionManager(object):
             try:
                 ontic_type.validate_object(input_socket_config)
             except ValidationException as ve:
-                self.log.exception(ve.message)
+                self.log.info(ve.message)
                 raise ValueError(ve.message)
             #todo: raul - add validation based on socket type
 
