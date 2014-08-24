@@ -36,7 +36,7 @@ class Controller(object):
         msg = self._listener.recv()
 
         if not msg:
-            self.log.error('Empty message delivered: %s', msg)
+            self.log.error('Empty message delivered.')
             return
 
         if msg == '__kill__':

@@ -1,5 +1,9 @@
-from io import StringIO
+from cStringIO import StringIO
+import logging
+import re
 import sys
+
+from phenomena.event_core import EventCore
 
 
 class StdOutCapture(list):
@@ -22,3 +26,44 @@ class StdOutCapture(list):
 
         self.extend(self._stringio.getvalue().splitlines())
         sys.stdout = self._original_stdout
+
+
+class CaptureHandler(logging.StreamHandler):
+    MSG_RE = re.compile(r'(?:.* -- )(?P<Message>.*)')
+
+    def __init__(self):
+        self._stream = StringIO()
+
+        super(CaptureHandler, self).__init__(self._stream)
+
+
+    def read_logs(self):
+        logs = []
+
+        for log in self._stream.getvalue().splitlines():
+            logs.append(log)
+
+        self._stream.truncate(0)
+
+        return logs
+
+    def read_messages(self):
+        msgs = []
+
+        for log in self._stream.getvalue().splitlines():
+            msgs.append(self.MSG_RE.match(log).group('Message'))
+
+        self._stream.truncate(0)
+
+        return msgs
+
+
+def create_capture_log():
+    capture_handle = CaptureHandler()
+    capture_handle.setFormatter(EventCore.LOG_FORMATTER)
+    log = logging.getLogger('EventCore')
+    log.addHandler(capture_handle)
+
+    log.capture_handle = capture_handle
+
+    return log
