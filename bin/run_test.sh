@@ -19,4 +19,4 @@ rm -rf BUILD/COVERAGE_REPORT
 rm -rf TEST_OUT
 
 # Execute the tests as per the given config.
-nosetests -c bin/nose.cfg
+gnose.py -c bin/nose.cfg
