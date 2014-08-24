@@ -1,7 +1,7 @@
 from ontic import ontic_type
 from ontic.validation_exception import ValidationException
 
-from input_socket_config import InputSocketConfig
+from listener_config import ListenerConfig
 
 
 class ConnectionManager(object):
@@ -17,9 +17,9 @@ class ConnectionManager(object):
 
     def register_input_config(self, input_socket_config):
         with self.event_core._config_lock:
-            if not isinstance(input_socket_config, InputSocketConfig):
+            if not isinstance(input_socket_config, ListenerConfig):
                 raise ValueError(
-                    '"input_socket_config" must be InputSocketConfig type')
+                    '"input_socket_config" must be ListenerConfig type')
 
             # validate input
             try:

@@ -1,12 +1,15 @@
+import json
 import unittest
 
 from gevent import sleep, spawn
 
+from phenomena.command_message import CommandMessage
 from phenomena.event_core import EventCore
+
 import test_utils
 
 
-class EventCoreControllerTest(unittest.TestCase):
+class ControllerTest(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -25,7 +28,8 @@ class EventCoreControllerTest(unittest.TestCase):
 
         # test controller shutdown
         controller = core.controller
-        controller.signal_message('__kill__')
+        kill_cmd = CommandMessage(cmd = CommandMessage.CMD_KILL)
+        controller.signal_message(kill_cmd)
         the_spawn.join(timeout=5)
 
         # ensure that the core is shutdown
@@ -45,7 +49,7 @@ class EventCoreControllerTest(unittest.TestCase):
 
         # test controller shutdown
         controller = core.controller
-        controller.signal_message('')
+        controller.signal_message({})
         sleep(0.01)  # allow for processing of the message
 
         self.assertFalse(core.is_stopped)
@@ -56,5 +60,5 @@ class EventCoreControllerTest(unittest.TestCase):
         the_spawn.join(timeout=5)
         self.assertTrue(core.is_stopped)
 
-        self.assertListEqual(['Empty message delivered.'],
+        self.assertListEqual(['Empty command message delivered.'],
                              log.capture_handle.read_messages())

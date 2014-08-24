@@ -1,4 +1,5 @@
 """"""
+import json
 import signal
 
 from cognate.component_core import ComponentCore
@@ -6,6 +7,7 @@ from gevent import sleep, spawn
 from gevent.lock import RLock
 import zmq.green as zmq
 
+from command_message import CommandMessage
 from controller import Controller
 from connection_manager import ConnectionManager
 
@@ -36,7 +38,7 @@ class EventCore(ComponentCore):
         # the service controller
         self._controller = None
 
-        # input configs are of type input_socket_config.InputSocketConfig
+        # input configs are of type input_socket_config.ListenerConfig
         self._connection_manager = ConnectionManager(self)
         self._input_sockets = None
 
@@ -49,6 +51,10 @@ class EventCore(ComponentCore):
     @property
     def controller(self):
         return self._controller
+
+    @property
+    def connection_manager(self):
+        return self._connection_manager
 
     @property
     def is_stopped(self):
@@ -113,7 +119,8 @@ class EventCore(ComponentCore):
     def kill(self):
         with self._config_lock:
             self.log.info('kill invoked.')
-            self._controller.signal_message('__kill__')
+            kill_cmd = CommandMessage(cmd=CommandMessage.CMD_KILL)
+            self._controller.signal_message(kill_cmd)
 
     def _clear_poller(self):
         self.log.info('Clearing poller.')
