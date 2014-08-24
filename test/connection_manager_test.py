@@ -20,5 +20,9 @@ class ConnectionManagerTest(unittest.TestCase):
         self.assertIsNotNone(core)
 
         # configure the input socket
-        socket_config = ListenerConfig()
+        socket_config = ListenerConfig(
+            url='tcp://*:10001'
+        )
         core.connection_manager.register_input_config(socket_config)
+
+        #todo: raul - add the rest of the test to validate the configuration

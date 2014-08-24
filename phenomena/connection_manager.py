@@ -8,7 +8,7 @@ class ConnectionManager(object):
     def __init__(self, event_core):
         self.event_core = event_core
         self.log = event_core.log
-        self._input_socket_configs = []
+        self._input_socket_configs = {}
         self._input_index = 0
 
     @property
@@ -25,8 +25,9 @@ class ConnectionManager(object):
             try:
                 ontic_type.validate_object(input_socket_config)
             except ValidationException as ve:
-                self.log.info(ve.message)
+                self.log.error(ve.message)
                 raise ValueError(ve.message)
+
             #todo: raul - add validation based on socket type
 
             #todo: raul - add code to determine dynamic addition of socket
