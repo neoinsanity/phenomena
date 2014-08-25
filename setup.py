@@ -5,7 +5,7 @@ with open('README.txt') as file:
     long_description = file.read()
 
 requires = [
-    'ontic==0.0.2',
+    'ontic==0.0.3a',
     'gevent==1.0.1',
     'pyzmq==14.3.1',
     'cognate']
