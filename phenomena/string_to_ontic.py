@@ -1,7 +1,7 @@
 from ontic.ontic_type import perfect_object, OnticType
 
 type_transformer = {
-    'int': lambda v: int(v)
+    int: lambda v: int(v)
 }
 
 def transform(ontic_type, data):

@@ -5,10 +5,11 @@ with open('README.txt') as file:
     long_description = file.read()
 
 requires = [
-    'ontic==0.0.2',
+    'cognate==0.0.1',
     'gevent==1.0.1',
+    'ontic==0.0.3',
     'pyzmq==14.3.1',
-    'cognate']
+    ]
 
 setup(
     name='phenomena',
