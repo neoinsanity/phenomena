@@ -6,6 +6,7 @@ with open('README.txt') as file:
 
 requires = [
     'cognate==0.0.1',
+    'decorator==3.4.0',
     'gevent==1.0.1',
     'ontic==0.0.3',
     'pyzmq==14.3.1',

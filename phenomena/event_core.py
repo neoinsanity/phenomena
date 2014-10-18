@@ -1,8 +1,8 @@
 """"""
-import json
 import signal
 
 from cognate.component_core import ComponentCore
+from decorator import decorator
 from gevent import sleep, spawn
 from gevent.lock import RLock
 import zmq.green as zmq
@@ -10,6 +10,12 @@ import zmq.green as zmq
 from command_message import CommandMessage
 from controller import Controller
 from connection_manager import ConnectionManager
+
+
+@decorator
+def config_lock(func, self, *args, **kwargs):
+    with self._config_lock:
+        return func(self, *args, **kwargs)
 
 
 class EventCore(ComponentCore):
@@ -83,7 +89,7 @@ class EventCore(ComponentCore):
             self._input_sockets = []
             for sock_config in self._connection_manager.input_socket_configs:
                 self.log.info('Configuring socket: %s', sock_config)
-                #todo: raul - add actual socket creation logic
+                # todo: raul - add actual socket creation logic
 
             # spawn the poller loop
             poller_loop_spawn = spawn(self._poll_loop_executable)
@@ -116,11 +122,12 @@ class EventCore(ComponentCore):
 
         self.log.info('Execution terminated.')
 
+    @config_lock
     def kill(self):
-        with self._config_lock:
-            self.log.info('kill invoked.')
-            kill_cmd = CommandMessage(cmd=CommandMessage.CMD_KILL)
-            self._controller.signal_message(kill_cmd)
+        #with self._config_lock:
+        self.log.info('kill invoked.')
+        kill_cmd = CommandMessage(cmd=CommandMessage.CMD_KILL)
+        self._controller.signal_message(kill_cmd)
 
     def _clear_poller(self):
         self.log.info('Clearing poller.')
@@ -134,7 +141,7 @@ class EventCore(ComponentCore):
             for sock in self._input_sockets:
                 if socks.get(sock) == zmq.POLLIN:
                     msg_found = True
-                    #todo: raul - add processing of message
+                    # todo: raul - add processing of message
                     spawn(sock.recv_handler, sock)
 
             if msg_found:
@@ -151,7 +158,7 @@ class EventCore(ComponentCore):
 
             for sock in self._input_sockets:
                 if socks.get(sock) == zmq.POLLIN:
-                    #todo: raul - add processing of msg
+                    # todo: raul - add processing of msg
                     spawn(sock.recv_handler, sock)
 
             self.log.debug('Thump!, Thump!')
