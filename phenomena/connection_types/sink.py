@@ -5,7 +5,7 @@ from ontic.schema_type import SchemaType
 class Sink(OnticType):
     ONTIC_SCHEMA = SchemaType({
         'id': {
-            'type': int,
+            'type': long,
             'required': True,
         },
         'type': {
@@ -23,7 +23,7 @@ class Sink(OnticType):
         'address': {
             'type': basestring,
             'required': True,
-            'default': 'localhost'
+            'default': '*'
         },
         'port': {
             'type': int,

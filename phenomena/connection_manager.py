@@ -1,8 +1,10 @@
+import uuid
+
 from ontic import ontic_type
 from ontic.validation_exception import ValidationException
 
+from phenomena.config_lock import config_lock
 from phenomena.connection_types import Listener, Requester, Responder, Sink
-from listener_config import ListenerConfig
 
 
 class ConnectionManager(object):
@@ -14,54 +16,125 @@ class ConnectionManager(object):
         """
         self.event_core = event_core
         self.log = event_core.log
-        self._input_socket_configs = {}
-        self._input_index = 0
+
+        self._listener_configs = {}
+        self._requester_configs = {}
+        self._responder_configs = {}
+        self._sink_configs = {}
 
     @property
-    def input_socket_configs(self):
-        return self._input_socket_configs
+    def listener_configs(self):
+        return self._listener_configs
 
-    def register_input_config(self, input_socket_config):
-        with self.event_core._config_lock:
-            if not isinstance(input_socket_config, ListenerConfig):
-                raise ValueError(
-                    '"input_socket_config" must be ListenerConfig type')
+    @property
+    def requester_configs(self):
+        return self._requester_configs
 
-            # Validate input
-            try:
-                ontic_type.validate_object(input_socket_config)
-            except ValidationException as ve:
-                self.log.error(ve.message)
-                raise ValueError(ve.message)
+    @property
+    def responder_configs(self):
+        return self._responder_configs
 
-            # todo: raul - add validation based on socket type
+    @property
+    def sink_configs(self):
+        return self._sink_configs
 
-            # todo: raul - add code to determine dynamic addition of socket
+    @config_lock
+    def register_listener(self,
+                          address='localhost',
+                          port=60053,
+                          protocol='tcp',
+                          type='pull'):
+        listener = Listener(
+            id=int(uuid.uuid4()),
+            address=address,
+            port=port,
+            protocol=protocol,
+            type=type)
+        self.log.info('register_listener: %s', listener)
 
-            # register the input config
-            id = self._input_index
-            input_socket_config.id = id
-            self._input_socket_configs[id] = input_socket_config
-            self._input_index += 1
+        try:
+            ontic_type.validate_object(listener)
+        except ValidationException as ve:
+            raise ValueError(ve.message)
 
-            return id
+        self._listener_configs[listener.id] = listener
 
-    def register_listener(self):
-        listener = Listener()
-        #todo: raul - add the actual code
+        # todo: raulg - add activating the listener if the core is running
+
         return listener
 
-    def register_requester(self):
-        requester = Requester()
-        #todo: raul - add the actual code
+    @config_lock
+    def register_requester(self,
+                           address='localhost',
+                           port=60053,
+                           protocol='tcp',
+                           type='request'):
+        requester = Requester(
+            id=int(uuid.uuid4()),
+            address=address,
+            port=port,
+            protocol=protocol,
+            type=type)
+        self.log.info('register_requester: %s', requester)
+
+        try:
+            ontic_type.validate_object(requester)
+        except ValidationException as ve:
+            raise ValueError(ve.message)
+
+        self._requester_configs[requester.id] = requester
+
+        # todo: raulg - add activating the requester if the core is running
+
         return requester
 
-    def register_responder(self):
-        responder = Responder()
-        #todo: raul - add the actual code
+    @config_lock
+    def register_responder(self,
+                           address='*',
+                           port=60053,
+                           protocol='tcp',
+                           type='reply'):
+
+        responder = Responder(
+            id=int(uuid.uuid4()),
+            address=address,
+            port=port,
+            protocol=protocol,
+            type=type)
+        self.log.info('register_responder: %s', responder)
+
+        try:
+            ontic_type.validate_object(responder)
+        except ValidationException as ve:
+            raise ValueError(ve.message)
+
+        self._responder_configs[responder.id] = responder
+
+        # todo: raul - add the actual code
         return responder
 
-    def register_sink(self):
-        sink = Sink()
-        #todo: raul - add the actual code
+
+    @config_lock
+    def register_sink(self,
+                      address='*',
+                      port=60053,
+                      protocol='tcp',
+                      type='push'):
+        sink = Sink(
+            id=int(uuid.uuid4()),
+            address=address,
+            port=port,
+            protocol=protocol,
+            type=type)
+        self.log.debug('register_sink: %s', sink)
+
+        try:
+            ontic_type.validate_object(sink)
+        except ValidationException as ve:
+            raise ValueError(ve.message)
+
+        self.sink_configs[sink.id] = sink
+
+        # todo: raulg - add activating the sink if the core is running
+
         return sink

@@ -2,20 +2,13 @@
 import signal
 
 from cognate.component_core import ComponentCore
-from decorator import decorator
 from gevent import sleep, spawn
-from gevent.lock import RLock
 import zmq.green as zmq
 
-from command_message import CommandMessage
-from controller import Controller
-from connection_manager import ConnectionManager
-
-
-@decorator
-def config_lock(func, self, *args, **kwargs):
-    with self._config_lock:
-        return func(self, *args, **kwargs)
+from phenomena.command_message import CommandMessage
+from phenomena.config_lock import global_config_lock, config_lock
+from phenomena.connection_manager import ConnectionManager
+from phenomena.controller import Controller
 
 
 class EventCore(ComponentCore):
@@ -38,15 +31,12 @@ class EventCore(ComponentCore):
         # zmq poller used to retrieve messages
         self._poller = None
 
-        # semaphore for controlling configuration
-        self._config_lock = RLock()
-
         # the service controller
         self._controller = None
 
         # input configs are of type input_socket_config.ListenerConfig
         self._connection_manager = ConnectionManager(self)
-        self._input_sockets = None
+        self._active_input_sockets = None
 
     def cognate_options(self, arg_parser):
         arg_parser.add_argument('--heartbeat',
@@ -77,7 +67,7 @@ class EventCore(ComponentCore):
         # create poller loop
         self._poller = zmq.Poller()
 
-        with self._config_lock:
+        with global_config_lock:
             # initialize the control layer
             self._controller = Controller(event_core=self,
                                           port=self.command_port)
@@ -85,10 +75,10 @@ class EventCore(ComponentCore):
 
             # initialize the output sockets
 
-            # initialize the input sockets
-            self._input_sockets = []
-            for sock_config in self._connection_manager.input_socket_configs:
-                self.log.info('Configuring socket: %s', sock_config)
+            # initialize the listener sockets
+            self._active_input_sockets = []
+            for sock_config in self._connection_manager.listener_configs:
+                self.log.info('Configuring listener: %s', sock_config)
                 # todo: raul - add actual socket creation logic
 
             # spawn the poller loop
@@ -101,12 +91,12 @@ class EventCore(ComponentCore):
         poller_loop_spawn.join()
         self._clear_poller()
 
-        with self._config_lock:
+        with global_config_lock:
             # shutdown input sockets
-            for sock in self._input_sockets:
+            for sock in self._active_input_sockets:
                 sock.close()
 
-            self._input_sockets = None
+            self._listener_sockets = None
 
             # shutdown output sockets
 
@@ -124,7 +114,7 @@ class EventCore(ComponentCore):
 
     @config_lock
     def kill(self):
-        #with self._config_lock:
+        # with self._config_lock:
         self.log.info('kill invoked.')
         kill_cmd = CommandMessage(cmd=CommandMessage.CMD_KILL)
         self._controller.signal_message(kill_cmd)
@@ -138,7 +128,7 @@ class EventCore(ComponentCore):
 
             socks = dict(self._poller.poll(timeout=0.25))
             msg_found = False
-            for sock in self._input_sockets:
+            for sock in self._active_input_sockets:
                 if socks.get(sock) == zmq.POLLIN:
                     msg_found = True
                     # todo: raul - add processing of message
@@ -156,7 +146,7 @@ class EventCore(ComponentCore):
             if socks.get(self._controller.listener) == zmq.POLLIN:
                 self._controller.handle_msg()
 
-            for sock in self._input_sockets:
+            for sock in self._active_input_sockets:
                 if socks.get(sock) == zmq.POLLIN:
                     # todo: raul - add processing of msg
                     spawn(sock.recv_handler, sock)

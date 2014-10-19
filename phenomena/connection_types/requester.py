@@ -5,7 +5,7 @@ from ontic.schema_type import SchemaType
 class Requester(OnticType):
     ONTIC_SCHEMA = SchemaType({
         'id': {
-            'type': int,
+            'type': long,
             'required': True,
         },
         'type': {

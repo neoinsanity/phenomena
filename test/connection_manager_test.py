@@ -1,11 +1,6 @@
 import unittest
 
-from gevent import sleep, spawn
-
 from phenomena.event_core import EventCore
-from phenomena.listener_config import ListenerConfig
-
-import test_utils
 
 
 class ConnectionManagerTest(unittest.TestCase):
@@ -15,9 +10,9 @@ class ConnectionManagerTest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_register_listener(self):
+    def test_register_default_listener(self):
         # test subjects
-        core = EventCore(command_port=9003)
+        core = EventCore(command_port=63353)
         listener = core.connection_manager.register_listener()
 
         # validate listener
@@ -28,7 +23,7 @@ class ConnectionManagerTest(unittest.TestCase):
 
     def test_register_requester(self):
         # test subjects
-        core = EventCore(command_port=9003)
+        core = EventCore(command_port=63353)
         requester = core.connection_manager.register_requester()
 
         # validate requester
@@ -38,7 +33,7 @@ class ConnectionManagerTest(unittest.TestCase):
         # todo: raul - add the rest of the test as the method call is filled.
 
     def test_register_responder(self):
-        core = EventCore(command_port=9003)
+        core = EventCore(command_port=63353)
         responder = core.connection_manager.register_responder()
 
         # validate responder
@@ -49,7 +44,7 @@ class ConnectionManagerTest(unittest.TestCase):
 
     def test_register_sink(self):
         # test subjects
-        core = EventCore(command_port=9003)
+        core = EventCore(command_port=63353)
         sink = core.connection_manager.register_sink()
 
         # validate sink
