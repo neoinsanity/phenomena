@@ -24,6 +24,14 @@ class ConnectionManagerTest(unittest.TestCase):
         self.assertEqual('pull', listener.type)
 
         # validate core state
+        con_mgr_listener_configs = core.connection_manager.listener_configs
+        self.assertEqual(1, len(con_mgr_listener_configs))
+        self.assertIsNot(con_mgr_listener_configs[listener.id],
+                         listener,
+                         'Listeners should be copies, and not equivalent.')
+        self.assertIsNot(con_mgr_listener_configs[listener.id],
+                         core.connection_manager._listener_configs[listener.id],
+                         'Only listener copies should be exposed.')
         # todo: raul - add the rest of the test as the method call us filled.
 
     def test_register_default_requester(self):

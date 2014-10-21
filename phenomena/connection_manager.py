@@ -1,3 +1,4 @@
+from copy import deepcopy
 import uuid
 
 from ontic import ontic_type
@@ -24,19 +25,19 @@ class ConnectionManager(object):
 
     @property
     def listener_configs(self):
-        return self._listener_configs
+        return deepcopy(self._listener_configs)
 
     @property
     def requester_configs(self):
-        return self._requester_configs
+        return deepcopy(self._requester_configs)
 
     @property
     def responder_configs(self):
-        return self._responder_configs
+        return deepcopy(self._responder_configs)
 
     @property
     def sink_configs(self):
-        return self._sink_configs
+        return deepcopy(self._sink_configs)
 
     @config_lock
     def register_listener(self,
@@ -61,7 +62,7 @@ class ConnectionManager(object):
 
         # todo: raulg - add activating the listener if the core is running
 
-        return listener
+        return deepcopy(listener)
 
     @config_lock
     def register_requester(self,
@@ -86,7 +87,7 @@ class ConnectionManager(object):
 
         # todo: raulg - add activating the requester if the core is running
 
-        return requester
+        return deepcopy(requester)
 
     @config_lock
     def register_responder(self,
@@ -111,7 +112,7 @@ class ConnectionManager(object):
         self._responder_configs[responder.id] = responder
 
         # todo: raul - add the actual code
-        return responder
+        return deepcopy(responder)
 
 
     @config_lock
@@ -137,4 +138,4 @@ class ConnectionManager(object):
 
         # todo: raulg - add activating the sink if the core is running
 
-        return sink
+        return deepcopy(sink)
