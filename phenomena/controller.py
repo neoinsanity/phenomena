@@ -1,5 +1,10 @@
-from gevent import sleep
+import json
+
+from ontic import ontic_type
 import zmq.green as zmq
+
+from command_message import CommandMessage
+import string_to_ontic
 
 
 class Controller(object):
@@ -34,12 +39,23 @@ class Controller(object):
         """
         """
         msg = self._listener.recv()
+        self.log.debug('handle_msg: "%s"', msg)
 
         if not msg:
             self.log.error('Empty message delivered.')
             return
 
-        if msg == '__kill__':
+        cmd_load = json.loads(msg)
+        self.log.debug('cmd_load: %s', cmd_load)
+        if not cmd_load:
+            self.log.error('Empty command message delivered.')
+            return
+
+        # todo: raul - this is where I need a string to model converter
+        cmd_msg = string_to_ontic.transform(CommandMessage, cmd_load)
+        ontic_type.validate_object(cmd_msg)
+
+        if cmd_msg.cmd == CommandMessage.CMD_KILL:
             self.log.info('Received kill message.')
             self.event_core._stopped = True
             return
@@ -48,10 +64,10 @@ class Controller(object):
         """
 
         :param msg:
-        :type msg: basestring
+        :type msg: dict
         :return:
         """
-        self._sender.send(msg)
+        self._sender.send(json.dumps(msg))
 
     def close_connections(self):
         self._sender.close()

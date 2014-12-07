@@ -58,11 +58,12 @@ class CaptureHandler(logging.StreamHandler):
         return msgs
 
 
-def create_capture_log():
+def create_capture_log(log_level=logging.ERROR):
     capture_handle = CaptureHandler()
     capture_handle.setFormatter(EventCore.LOG_FORMATTER)
     log = logging.getLogger('EventCore')
     log.addHandler(capture_handle)
+    log.setLevel(log_level)
 
     log.capture_handle = capture_handle
 
