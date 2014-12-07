@@ -22,12 +22,11 @@ class EventCoreTest(unittest.TestCase):
 
         # text run state
         the_spawn = spawn(core.run)
-        sleep(0.005)  # give the spawn a change to initialize
+        sleep(0.005)  # give the spawn a chance to initialize
         self.assertFalse(core.is_stopped)
 
         # test shutdown state
         core.kill()
-        # sleep(1) # yield to allow message propagation
         the_spawn.join(timeout=5)
         self.assertTrue(core.is_stopped)
 

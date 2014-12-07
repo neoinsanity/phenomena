@@ -25,6 +25,12 @@ class EventCore(ComponentCore):
         signal.signal(signal.SIGILL, self._signal_interrupt_handler)
         self._stopped = True
 
+        # list of functions to call after config, but before event loop starts
+        self._startup_hooks = list()
+
+        # list of functions to call when after event loop is drained
+        self._shutdown_hooks = list()
+
         # zmq context used to create sockets
         self._zmq_ctx = None
 
@@ -85,6 +91,10 @@ class EventCore(ComponentCore):
             poller_loop_spawn = spawn(self._poll_loop_executable)
             sleep(0)
 
+        # call the startup hooks before executing the loop
+        for func in self._startup_hooks:
+            func()
+
         # execute a run loop if one has been assigned
         # else wait for the poll loop to exit
         # ensure shutdown of poller loop
@@ -110,6 +120,10 @@ class EventCore(ComponentCore):
         # destroy zmq context
         self._zmq_ctx = None
 
+        # call shutdown hooks
+        for func in self._shutdown_hooks:
+            func()
+
         self.log.info('Execution terminated.')
 
     @config_lock
@@ -118,6 +132,14 @@ class EventCore(ComponentCore):
         self.log.info('kill invoked.')
         kill_cmd = CommandMessage(cmd=CommandMessage.CMD_KILL)
         self._controller.signal_message(kill_cmd)
+
+    @config_lock
+    def register_startup_hook(self, func):
+        self._startup_hooks.append(func)
+
+    @config_lock
+    def register_shutdown_hook(self, func):
+        self._shutdown_hooks.append(func)
 
     def _clear_poller(self):
         self.log.info('Clearing poller.')
