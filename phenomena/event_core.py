@@ -1,15 +1,14 @@
 """"""
-import json
 import signal
 
 from cognate.component_core import ComponentCore
 from gevent import sleep, spawn
-from gevent.lock import RLock
 import zmq.green as zmq
 
-from command_message import CommandMessage
-from controller import Controller
-from connection_manager import ConnectionManager
+from phenomena.command_message import CommandMessage
+from phenomena.config_lock import global_config_lock, config_lock
+from phenomena.connection_manager import ConnectionManager
+from phenomena.controller import Controller
 
 
 class EventCore(ComponentCore):
@@ -26,21 +25,24 @@ class EventCore(ComponentCore):
         signal.signal(signal.SIGILL, self._signal_interrupt_handler)
         self._stopped = True
 
+        # list of functions to call after config, but before event loop starts
+        self._startup_hooks = list()
+
+        # list of functions to call when after event loop is drained
+        self._shutdown_hooks = list()
+
         # zmq context used to create sockets
         self._zmq_ctx = None
 
         # zmq poller used to retrieve messages
         self._poller = None
 
-        # semaphore for controlling configuration
-        self._config_lock = RLock()
-
         # the service controller
         self._controller = None
 
         # input configs are of type input_socket_config.ListenerConfig
         self._connection_manager = ConnectionManager(self)
-        self._input_sockets = None
+        self._active_input_sockets = None
 
     def cognate_options(self, arg_parser):
         arg_parser.add_argument('--heartbeat',
@@ -71,7 +73,7 @@ class EventCore(ComponentCore):
         # create poller loop
         self._poller = zmq.Poller()
 
-        with self._config_lock:
+        with global_config_lock:
             # initialize the control layer
             self._controller = Controller(event_core=self,
                                           port=self.command_port)
@@ -79,15 +81,19 @@ class EventCore(ComponentCore):
 
             # initialize the output sockets
 
-            # initialize the input sockets
-            self._input_sockets = []
-            for sock_config in self._connection_manager.input_socket_configs:
-                self.log.info('Configuring socket: %s', sock_config)
-                #todo: raul - add actual socket creation logic
+            # initialize the listener sockets
+            self._active_input_sockets = []
+            for sock_config in self._connection_manager.listener_configs:
+                self.log.info('Configuring listener: %s', sock_config)
+                # todo: raul - add actual socket creation logic
 
             # spawn the poller loop
             poller_loop_spawn = spawn(self._poll_loop_executable)
             sleep(0)
+
+        # call the startup hooks before executing the loop
+        for func in self._startup_hooks:
+            func()
 
         # execute a run loop if one has been assigned
         # else wait for the poll loop to exit
@@ -95,12 +101,12 @@ class EventCore(ComponentCore):
         poller_loop_spawn.join()
         self._clear_poller()
 
-        with self._config_lock:
+        with global_config_lock:
             # shutdown input sockets
-            for sock in self._input_sockets:
+            for sock in self._active_input_sockets:
                 sock.close()
 
-            self._input_sockets = None
+            self._listener_sockets = None
 
             # shutdown output sockets
 
@@ -114,13 +120,26 @@ class EventCore(ComponentCore):
         # destroy zmq context
         self._zmq_ctx = None
 
+        # call shutdown hooks
+        for func in self._shutdown_hooks:
+            func()
+
         self.log.info('Execution terminated.')
 
+    @config_lock
     def kill(self):
-        with self._config_lock:
-            self.log.info('kill invoked.')
-            kill_cmd = CommandMessage(cmd=CommandMessage.CMD_KILL)
-            self._controller.signal_message(kill_cmd)
+        # with self._config_lock:
+        self.log.info('kill invoked.')
+        kill_cmd = CommandMessage(cmd=CommandMessage.CMD_KILL)
+        self._controller.signal_message(kill_cmd)
+
+    @config_lock
+    def register_startup_hook(self, func):
+        self._startup_hooks.append(func)
+
+    @config_lock
+    def register_shutdown_hook(self, func):
+        self._shutdown_hooks.append(func)
 
     def _clear_poller(self):
         self.log.info('Clearing poller.')
@@ -131,10 +150,10 @@ class EventCore(ComponentCore):
 
             socks = dict(self._poller.poll(timeout=0.25))
             msg_found = False
-            for sock in self._input_sockets:
+            for sock in self._active_input_sockets:
                 if socks.get(sock) == zmq.POLLIN:
                     msg_found = True
-                    #todo: raul - add processing of message
+                    # todo: raul - add processing of message
                     spawn(sock.recv_handler, sock)
 
             if msg_found:
@@ -149,9 +168,9 @@ class EventCore(ComponentCore):
             if socks.get(self._controller.listener) == zmq.POLLIN:
                 self._controller.handle_msg()
 
-            for sock in self._input_sockets:
+            for sock in self._active_input_sockets:
                 if socks.get(sock) == zmq.POLLIN:
-                    #todo: raul - add processing of msg
+                    # todo: raul - add processing of msg
                     spawn(sock.recv_handler, sock)
 
             self.log.debug('Thump!, Thump!')

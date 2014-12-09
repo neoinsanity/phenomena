@@ -1,7 +1,7 @@
 from ontic.ontic_type import OnticType
 from ontic.schema_type import SchemaType
 
-from listener_config import ListenerConfig
+from phenomena.connection_types import Listener
 
 
 class CommandMessage(OnticType):
@@ -10,7 +10,7 @@ class CommandMessage(OnticType):
     CMD_KILL = -1
 
     _data_type_by_method = {
-        'add_listener': ListenerConfig
+        'add_listener': Listener,
     }
 
     _methods = set(_data_type_by_method.keys())
