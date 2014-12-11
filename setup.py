@@ -14,7 +14,7 @@ requires = [
 
 setup(
     name='phenomena',
-    version='0.0.1b',
+    version='0.0.1',
     author='Raul Gonzalez',
     author_email='mindbender@gmail.com',
     url='https://github.com/neoinsanity/phenomena',
