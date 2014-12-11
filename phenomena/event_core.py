@@ -1,4 +1,4 @@
-""""""
+"""The core event handler."""
 import signal
 
 from cognate.component_core import ComponentCore
@@ -12,6 +12,7 @@ from phenomena.controller import Controller
 
 
 class EventCore(ComponentCore):
+    """EventCore Class."""
     def __init__(self, command_port=60053, heartbeat=3, **kwargs):
 
         # initialize configurable attributes
