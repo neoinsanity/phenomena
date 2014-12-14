@@ -10,7 +10,7 @@ requires = [
     'gevent==1.0.1',
     'ontic==0.0.4',
     'pyzmq==14.3.1',
-    ]
+]
 
 setup(
     name='phenomena',
@@ -19,11 +19,14 @@ setup(
     author_email='mindbender@gmail.com',
     url='https://github.com/neoinsanity/phenomena',
     license='Apache License 2.0',
-    description='Observable Events',
+    description='Being of Beings',
     long_description=long_description,
-    packages=['phenomena',],
+    packages=[
+        'phenomena',
+        'phenomena.connection_types',
+    ],
     install_requires=requires,
-    include_package_data = True,
+    include_package_data=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
