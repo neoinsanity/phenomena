@@ -1,11 +1,14 @@
 """The setuptools setup file."""
 from setuptools import setup
 
-with open('README.txt') as file:
+with open('README.md') as file:
     long_description = file.read()
 
+with open('VERSION') as version_file:
+    version = version_file.read().strip()
+
 requires = [
-    'cognate==0.0.1',
+    'cognate==0.0.4',
     'decorator==4.0.9',
     'gevent==1.1.0',
     'ontic==0.0.4',
@@ -14,7 +17,7 @@ requires = [
 
 setup(
     name='phenomena',
-    version='0.0.3a',
+    version=version,
     author='Raul Gonzalez',
     author_email='mindbender@gmail.com',
     url='https://github.com/neoinsanity/phenomena',
@@ -32,8 +35,7 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
         'Topic :: Software Development',
     ]
 )

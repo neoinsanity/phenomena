@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -x
+#!/usr/bin/env bash
 
 ###########################################################
 ##### Create virtualenv for development.
@@ -8,8 +8,11 @@
 # for instructions on installing virutalenv.
 ###########################################################
 
-# Create the virtual environment
-virtualenv venv
+### Create the virtual environment.
+# The virtualenv will attempt to make python 3
+# environment. If the '-p python3' doesn't work, them most
+# likely there is no python3 installed on local system.
+virtualenv -p python3 venv
 
 echo
 echo "------------------------------------------------"
@@ -27,7 +30,7 @@ echo "------------------------------------------------"
 echo
 
 ###########################################################
-##### Install the cognate package in development mode.
+##### Install the phenomena package in development mode.
 ###########################################################
 echo
 echo "------------------------------------------------"
