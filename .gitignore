@@ -4,7 +4,7 @@
 # Dev environment cruft.
 .idea/
 venv/
-BUILD/
+build/
 .coverage
 phenomena.egg-info/
 TEST_OUT/

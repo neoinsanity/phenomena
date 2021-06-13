@@ -3,9 +3,8 @@
 ##################################################
 
 ### These dependencies are test dependencies.
-coverage==3.7
-nose==1.3.0
-setuptools==1.4.2
+build
+pytest
 
 ### These are the documentation dependencies
-Sphinx==1.2
+Sphinx

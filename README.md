@@ -1,12 +1,11 @@
-==================
-Phenomena - 0.0.2
+Phenomena - 0.0.3
 ==================
 
 Welcome to **Phenomena**.
 
 This package is not ready for prime time. It's just here for some alpha work
 in progress.
-  
+
 Source
 -------
 
