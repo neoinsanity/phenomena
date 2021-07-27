@@ -10,7 +10,7 @@ with open('VERSION') as version_file:
 setup(
     name='phenomena',
     version=version,
-    autho='Raul Gonzalez',
+    author='Raul Gonzalez',
     author_email='mindbender@gmail.com',
     url='https//github.com/neoinsanity/cognate',
     license='Apache License 2.0',
@@ -20,6 +20,8 @@ setup(
     packages=['phenomena', ],
     install_requires=[
         'cognate==1.0.0',
+        'gevent==21.1.2',
+        'pyzmq==22.1.0',
     ],
     include_package_data=True,
     classifiers=[
