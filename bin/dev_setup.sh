@@ -40,7 +40,6 @@ echo "------------------------------------------------"
 echo
 python -m pip install --upgrade pip
 pip install -r bin/dev_requirements.txt
-pip install -r requirements.txt
 
 ###########################################################
 ##### Install the phenomena package in development mode.
@@ -50,4 +49,4 @@ echo "------------------------------------------------"
 echo "------ Setting up development environment ------"
 echo "------------------------------------------------"
 
-python -m build
+python setup.py develop
