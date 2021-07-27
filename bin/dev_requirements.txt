@@ -3,7 +3,6 @@
 ##################################################
 
 ### These dependencies are test dependencies.
-build
 pytest
 
 ### These are the documentation dependencies

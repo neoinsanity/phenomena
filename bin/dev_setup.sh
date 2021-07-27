@@ -12,7 +12,7 @@
 # The virtualenv will attempt to make python 3
 # environment. If the '-p python3' doesn't work, them most
 # likely there is no python3 installed on local system.
-python3 -m venv venv
+python3 -m venv .venv
 
 echo
 echo "------------------------------------------------"
@@ -24,7 +24,7 @@ echo
 echo "------------------------------------------------"
 echo "----- Activating virtual env with command. -----"
 
-source venv/bin/activate
+source .venv/bin/activate
 
 echo "------------------------------------------------"
 echo

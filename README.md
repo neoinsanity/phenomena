@@ -1,4 +1,4 @@
-Phenomena - 0.0.3
+Phenomena
 ==================
 
 Welcome to **Phenomena**.
