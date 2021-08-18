@@ -8,6 +8,8 @@ build/
 .coverage
 phenomena.egg-info/
 TEST_OUT/
+htmlcov/
+.pytest_cache/
 
 # Deployment cruft.
 dist/

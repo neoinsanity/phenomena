@@ -22,6 +22,7 @@ setup(
         'cognate==1.0.0',
         'gevent==21.1.2',
         'pyzmq==22.1.0',
+        'ontic==1.0.0',
     ],
     include_package_data=True,
     classifiers=[

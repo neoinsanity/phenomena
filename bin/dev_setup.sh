@@ -2,10 +2,6 @@
 
 ###########################################################
 ##### Create virtualenv for development.
-# Virtaulenv needs to be installed for this to work.
-# If you don't have virtualenv installed please visit
-# https://pypi.python.org/pypi/virtualenv
-# for instructions on installing virutalenv.
 ###########################################################
 
 ### Create the virtual environment.
